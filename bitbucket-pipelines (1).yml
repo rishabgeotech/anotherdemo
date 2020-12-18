@@ -1,0 +1,33 @@
+# This is a sample build configuration for JavaScript.
+# Check our guides at https://confluence.atlassian.com/x/14UWN for more examples.
+# Only use spaces to indent your .yml configuration.
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: node:10.15.3
+
+pipelines:
+  branches:
+    master:
+      - step:
+          name: Build app
+          script: # The script below will build the application.
+          - npm install
+          - npm install -g @angular/cli
+          - ng build --prod --progress=false
+          artifacts:
+                  - dist/**
+      - step:
+          name: Deploy app
+          deployment: test
+          script: # The script below will deploy the application to the webserver.
+            - pipe: atlassian/aws-s3-deploy:0.4.4
+              variables:
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+                S3_BUCKET: 'pricing-tool-frontend'
+                LOCAL_PATH: 'dist/pricing-tool-frontend'
+                ACL: 'public-read'
+                DELETE_FLAG: 'true'
+                EXTRA_ARGS: '--quiet'
+
